@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice/Billing Web App</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#">📄 BillSwift – Invoice Generator</a>
+      <div class="d-flex gap-2">
+        <button id="btnLoadSample" class="btn btn-outline-secondary btn-sm">Load Sample</button>
+        <button id="btnNew" class="btn btn-outline-secondary btn-sm">New</button>
+        <button id="btnSave" class="btn btn-primary btn-sm">Save</button>
+        <button id="btnHistory" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#historyModal">History</button>
+        <button id="btnPDF" class="btn btn-success btn-sm">Download PDF</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-4">
+    <div class="row g-4">
+      <div class="col-12 col-lg-5">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Invoice Details</h5>
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label">Invoice #</label>
+                <input id="invoiceNumber" class="form-control" placeholder="INV-2025-0001">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Date</label>
+                <input id="invoiceDate" type="date" class="form-control">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Currency</label>
+                <select id="currency" class="form-select">
+                  <option value="INR" selected>INR (₹)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Tax (%)</label>
+                <input id="taxRate" type="number" step="0.01" class="form-control" placeholder="18">
+                <div class="form-text">Applied on subtotal (after discount).</div>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Discount (%)</label>
+                <input id="discountRate" type="number" step="0.01" class="form-control" placeholder="0">
+                <div class="form-text">Applied on subtotal (before tax).</div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <h6 class="mb-2">From (Your Business)</h6>
+            <div class="mb-2">
+              <input id="fromName" class="form-control" placeholder="Your Business Name">
+            </div>
+            <div class="mb-2">
+              <textarea id="fromAddress" class="form-control" rows="2" placeholder="Address, City, State, ZIP"></textarea>
+            </div>
+            <div class="mb-3">
+              <input id="fromGST" class="form-control" placeholder="GSTIN (optional)">
+            </div>
+
+            <h6 class="mb-2">Bill To (Customer)</h6>
+            <div class="mb-2">
+              <input id="toName" class="form-control" placeholder="Customer Name">
+            </div>
+            <div class="mb-3">
+              <textarea id="toAddress" class="form-control" rows="2" placeholder="Address, City, State, ZIP"></textarea>
+            </div>
+
+            <h5 class="mt-4">Line Items</h5>
+            <div class="table-responsive">
+              <table class="table align-middle" id="itemsTable">
+                <thead>
+                  <tr>
+                    <th style="width: 36%">Description</th>
+                    <th style="width: 16%">HSN/SAC</th>
+                    <th style="width: 12%">Qty</th>
+                    <th style="width: 18%">Rate</th>
+                    <th style="width: 14%" class="text-end">Amount</th>
+                    <th style="width: 4%"></th>
+                  </tr>
+                </thead>
+                <tbody id="itemsBody">
+                </tbody>
+              </table>
+            </div>
+            <button id="btnAddItem" class="btn btn-outline-secondary btn-sm">+ Add Item</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-7">
+        <div id="previewWrapper" class="card shadow-sm">
+          <div class="card-body">
+            <div id="invoice-preview" class="invoice-paper mx-auto">
+              <header class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h2 class="m-0 fw-bold" id="pvFromName">Your Business</h2>
+                  <div class="small text-muted" id="pvFromAddress">Address</div>
+                  <div class="small text-muted" id="pvFromGST">GSTIN: —</div>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold">INVOICE</div>
+                  <div class="small"># <span id="pvInvoiceNumber">INV-0001</span></div>
+                  <div class="small">Date: <span id="pvInvoiceDate">—</span></div>
+                </div>
+              </header>
+
+              <section class="mb-3">
+                <div class="fw-semibold">Bill To:</div>
+                <div id="pvToName">Customer Name</div>
+                <div class="small text-muted" id="pvToAddress">Customer Address</div>
+              </section>
+
+              <section class="mb-3">
+                <table class="table table-sm table-bordered invoice-table m-0">
+                  <thead>
+                    <tr>
+                      <th>Description</th>
+                      <th>HSN/SAC</th>
+                      <th class="text-end">Qty</th>
+                      <th class="text-end">Rate</th>
+                      <th class="text-end">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pvItems"></tbody>
+                </table>
+              </section>
+
+              <section class="d-flex justify-content-end">
+                <table class="table table-sm totals-table w-auto">
+                  <tbody>
+                    <tr>
+                      <td>Subtotal</td>
+                      <td class="text-end" id="pvSubtotal">₹0.00</td>
+                    </tr>
+                    <tr>
+                      <td>Discount (<span id="pvDiscountRate">0</span>%)</td>
+                      <td class="text-end" id="pvDiscount">- ₹0.00</td>
+                    </tr>
+                    <tr>
+                      <td>Tax (<span id="pvTaxRate">0</span>%)</td>
+                      <td class="text-end" id="pvTax">₹0.00</td>
+                    </tr>
+                    <tr class="fw-bold border-top">
+                      <td>Total</td>
+                      <td class="text-end" id="pvTotal">₹0.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <footer class="mt-4 small text-muted">
+                Thank you for your business!
+              </footer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- History Modal -->
+  <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Saved Invoices</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <input id="historySearch" class="form-control form-control-sm w-50" placeholder="Search by customer or number">
+            <div class="d-flex gap-2">
+              <button id="btnExportHistory" class="btn btn-outline-secondary btn-sm" title="Export JSON">Export</button>
+              <label class="btn btn-outline-secondary btn-sm mb-0">
+                Import <input id="importFile" type="file" accept="application/json" hidden>
+              </label>
+              <button id="btnClearHistory" class="btn btn-outline-danger btn-sm">Clear All</button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Invoice #</th>
+                  <th>Customer</th>
+                  <th class="text-end">Total</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
