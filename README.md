@@ -20,18 +20,18 @@ One-click Load Sample Data to try instantly
 
 Print-friendly A4-style preview
 
-👉 Calculation flow: discount → then tax (realistic for GST-style billing).
+Calculation flow: discount → then tax (realistic for GST-style billing).
 
 🛠 Tech Stack
 
 HTML, CSS, JavaScript
 
 Bootstrap 5
- for responsive design
+ – for responsive design
 
 jsPDF
  + html2canvas
- for PDF export
+ – for PDF export
 
 🚀 Getting Started
 
