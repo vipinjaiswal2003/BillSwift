@@ -35,8 +35,3 @@
 5. Runs completely in the browser — **no backend required**
 
 ---
-## 📂 Project Structure
-billswift/
-├── index.html   # UI layout (Bootstrap + modal form + table)
-├── styles.css   # Custom styling & responsive tweaks
-└── app.js       # CRUD, filters, sorting, LocalStorage, import/export
